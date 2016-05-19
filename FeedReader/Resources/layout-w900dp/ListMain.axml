@@ -6,11 +6,7 @@
     android:divider="?android:attr/dividerHorizontal"
     android:orientation="horizontal"
     android:showDividers="middle">
-<!--
-    This layout is a two-pane layout for the Items
-    master/detail flow.
-    
-    -->
+<!-- This layout is a two-pane layout for the Items master/detail flow. -->
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/swipeContainer"
         android:layout_width="400dp"
