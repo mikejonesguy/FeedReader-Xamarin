@@ -16,7 +16,8 @@ using Android.Support.V4.Widget;
 using Toolbar = Android.Support.V7.Widget.Toolbar;
 
 namespace FeedReader
-{			
+{
+	[Activity (Label = "Detail View")]	
 	public class DetailActivity : AppCompatActivity
 	{
 		protected override void OnCreate (Bundle savedInstanceState)

@@ -39,11 +39,10 @@ namespace FeedReader
 			View rootView =  inflater.Inflate(Resource.Layout.FragmentDetail, container, false);
 
 			// add a little CSS styling to make the content look nice (images and videos fit width)
-			html = "<html><head><meta name=\"viewport\" content=\"width=device-width, " +
-				"target-densityDpi=device-dpi, initial-scale=1.0, user-scalable=no\"/>" +
-				"<style>body { margin: 0px; padding: 2vw; } img { width:96vw; } " +
-				"img[width] { width:inherit; } div.video_iframe iframe { width:96vw; " +
-				"height:54vw; margin: auto; }</style></head><body>\n" + html + "\n</body></html>";
+			html = "<html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>" +
+				"<style>body { margin: 0px; padding: 2%; } img { width:100%; } " +
+				"img[width] { width:inherit; } div.video_iframe iframe { width:100%; height:56vw; margin: auto; }" +
+				"</style></head><body>\n" + html + "\n</body></html>";
 
 			webView = rootView.FindViewById<WebView> (Resource.Id.webView);
 			WebSettings settings = webView.Settings;
@@ -56,7 +55,7 @@ namespace FeedReader
 			settings.JavaScriptEnabled = true;
 
 			// load the html content
-			webView.LoadData (html, "text/html; charset=UTF-8", null);
+			webView.LoadData (html, "text/html; charset=UTF-8", "UTF-8");
 
 			return rootView;
 		}
