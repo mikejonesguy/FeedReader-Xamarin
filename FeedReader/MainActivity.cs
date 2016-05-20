@@ -48,6 +48,11 @@ namespace FeedReader
 			// two-pane mode
 			recyclerView.AddOnLayoutChangeListener(this);
 
+			// setup the (empty) adapter and set it on the recyclerview
+			List<FeedItem> empty = new List<FeedItem> ();
+			adapter = new FeedItemAdapter (empty, this);
+			recyclerView.SetAdapter (adapter);
+
 			// setup swipe-to-refresh
 			swipeContainer = FindViewById<SwipeRefreshLayout> (Resource.Id.swipeContainer);
 			swipeContainer.Refresh += delegate {
@@ -68,7 +73,7 @@ namespace FeedReader
 			base.OnResume ();
 
 			// clear selection on return from detail
-			if (adapter != null && !isTwoPane) {
+			if (!isTwoPane) {
 				adapter.NotifyDataSetChanged ();
 			}
 
@@ -130,20 +135,14 @@ namespace FeedReader
 			// stop refresh animation
 			swipeContainer.Refreshing = false;
 
-			// only create a new adapter if it doesn't already exist,
-			// otherwise, just update the existing adapter
-			if (adapter == null) {
-				adapter = new FeedItemAdapter (results, this);
-				recyclerView.SetAdapter (adapter);
-			} else {
-				adapter.FeedItems = results;
-				adapter.NotifyDataSetChanged ();
-			}
+			// update the existing adapter
+			adapter.FeedItems = results;
+			adapter.NotifyDataSetChanged ();
 		}
 
 		private void AutoSelectItem0 ()
 		{
-			if (isTwoPane && !didAutoSelect && adapter != null) {
+			if (isTwoPane && !didAutoSelect && adapter.FeedItems.Count > 0) {
 				// remove layout changed listener now that we're done with it
 				recyclerView.RemoveOnLayoutChangeListener (this);
 
