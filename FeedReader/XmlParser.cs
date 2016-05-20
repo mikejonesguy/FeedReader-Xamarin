@@ -1,5 +1,6 @@
 ﻿using Android.OS;
 using Android.Net;
+using Android.Content;
 using System;
 using System.Linq;
 using System.Xml;
@@ -15,25 +16,25 @@ namespace FeedReader
 	{
 
 		private HttpClient httpClient;
+		private Context context;
 
-		public XmlParser ()
+		public XmlParser (Context context)
 		{
 			httpClient = new HttpClient ();
+			this.context = context.ApplicationContext;
 		}
 
 		// main entry method for the fetch/parse task
-		public async Task<List<FeedItem>> GetData (String url, bool activeNetwork)
+		public async Task<List<FeedItem>> GetData (String url)
 		{
 			XmlTextReader reader = null;
 			List<FeedItem> res = new List<FeedItem> ();
+			string path = System.Environment.GetFolderPath (System.Environment.SpecialFolder.Personal);
+			string filename = Path.Combine(path, "cached.xml");
 			try
 			{
-				// get file path
-				string path = System.Environment.GetFolderPath (System.Environment.SpecialFolder.Personal);
-				string filename = Path.Combine(path, "cached.xml");
-
 				// skip this if we're offline
-				if (activeNetwork) {
+				if (isActiveNetwork ()) {
 					var response = await httpClient.GetAsync (url);
 					if (response.IsSuccessStatusCode) {
 						string xml = await response.Content.ReadAsStringAsync ();
@@ -43,16 +44,23 @@ namespace FeedReader
 						}
 					}
 				}
+			}
+			catch (System.Exception sysExc)
+			{
+				Console.WriteLine (sysExc.Message);
+			}
 
-				// hopefully we have a cached version saved from
-				// a previous run -- otherwise return an empty list
-				if (!File.Exists (filename)) {
-					return res;
-				}
+			// hopefully we have a cached version saved from
+			// a previous run -- otherwise return an empty list
+			if (!File.Exists (filename)) {
+				return res;
+			}
 
+			// use a separate try/catch block here so that if the download
+			// fails for any reason, we can still try to parse cached data
+			try {
 				// start parsing the downloaded xml
 				reader = new XmlTextReader (filename);
-				//reader.WhitespaceHandling = WhitespaceHandling.Significant;
 				while (!reader.EOF) {
 					reader.Read ();
 					// look for <item> tags -- when we find one, we 
@@ -74,6 +82,7 @@ namespace FeedReader
 					reader.Close ();
 				}
 			}
+			
 			return res;
 		}
 
@@ -106,6 +115,14 @@ namespace FeedReader
 			}
 
 			return item;
+		}
+
+		private bool isActiveNetwork () 
+		{
+			// check network connectivity
+			ConnectivityManager connectivityManager = (ConnectivityManager) context.GetSystemService(Context.ConnectivityService);
+			NetworkInfo activeConnection = connectivityManager.ActiveNetworkInfo;
+			return activeConnection != null && activeConnection.IsConnected;
 		}
 	}
 }

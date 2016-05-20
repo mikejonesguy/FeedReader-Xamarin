@@ -60,7 +60,7 @@ namespace FeedReader
 			}
 
 			// init the parser
-			parser = new XmlParser ();
+			parser = new XmlParser (this);
 		}
 
 		protected override void OnResume ()
@@ -121,14 +121,8 @@ namespace FeedReader
 
 		private async void GetFeedData ()
 		{
-			// check network connectivity here and pass the information 
-			// to the parser
-			ConnectivityManager connectivityManager = (ConnectivityManager) GetSystemService(ConnectivityService);
-			NetworkInfo activeConnection = connectivityManager.ActiveNetworkInfo;
-			bool activeNetwork = (activeConnection != null) && activeConnection.IsConnected;
-
 			// kick off the xml fetch/parse task
-			var task = parser.GetData (FeedUrl, activeNetwork);
+			var task = parser.GetData (FeedUrl);
 			await task;
 			List<FeedItem> results = task.Result;
 			Console.WriteLine ("Feed fetch/parse complete");
