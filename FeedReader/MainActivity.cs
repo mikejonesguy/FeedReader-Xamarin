@@ -44,9 +44,14 @@ namespace FeedReader
 			recyclerView = FindViewById<RecyclerView> (Resource.Id.recyclerView);
 			recyclerView.SetLayoutManager (new LinearLayoutManager (this));
 
-			// need this to know when we can auto-select the first row in
-			// two-pane mode
-			recyclerView.AddOnLayoutChangeListener(this);
+			// if the detailContainer is in our layout, then we're in two-pane mode
+			if (FindViewById (Resource.Id.detailContainer) != null) {
+				isTwoPane = true;
+
+				// need this to know when we can auto-select the first row in
+				// two-pane mode
+				recyclerView.AddOnLayoutChangeListener(this);
+			}
 
 			// setup the (empty) adapter and set it on the recyclerview
 			List<FeedItem> empty = new List<FeedItem> ();
@@ -59,12 +64,7 @@ namespace FeedReader
 				GetFeedData ();
 			};
 
-			// if the detailContainer is in our layout, then we're in two-pane mode
-			if (FindViewById (Resource.Id.detailContainer) != null) {
-				isTwoPane = true;
-			}
-
-			// init the parser
+			// init the parser (doesn't run until OnResume())
 			parser = new XmlParser (this);
 		}
 
@@ -135,9 +135,13 @@ namespace FeedReader
 			// stop refresh animation
 			swipeContainer.Refreshing = false;
 
-			// update the existing adapter
-			adapter.FeedItems = results;
-			adapter.NotifyDataSetChanged ();
+			// update the existing adapter if we got valid results
+			if (results != null && results.Count > 0) {
+				adapter.FeedItems = results;
+				adapter.NotifyDataSetChanged ();
+			} else {
+				Console.WriteLine ("Parser returned null or empty results");
+			}
 		}
 
 		private void AutoSelectItem0 ()

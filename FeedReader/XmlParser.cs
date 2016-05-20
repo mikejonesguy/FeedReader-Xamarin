@@ -17,6 +17,8 @@ namespace FeedReader
 
 		private HttpClient httpClient;
 		private Context context;
+		private System.Object lockObject = new System.Object ();
+		private bool running = false;
 
 		public XmlParser (Context context)
 		{
@@ -27,13 +29,22 @@ namespace FeedReader
 		// main entry method for the fetch/parse task
 		public async Task<List<FeedItem>> GetData (String url)
 		{
-			XmlTextReader reader = null;
+			// prevent multiple concurrent tasks
+			lock (lockObject) {
+				if (running) {
+					return null;
+				} else {
+					running = true;
+				}
+			}
+
 			List<FeedItem> res = new List<FeedItem> ();
+			XmlTextReader reader = null;
 			string path = System.Environment.GetFolderPath (System.Environment.SpecialFolder.Personal);
 			string filename = Path.Combine(path, "cached.xml");
 			try
 			{
-				// skip this if we're offline
+				// skip the download if we're offline
 				if (isActiveNetwork ()) {
 					var response = await httpClient.GetAsync (url);
 					if (response.IsSuccessStatusCode) {
@@ -50,8 +61,8 @@ namespace FeedReader
 				Console.WriteLine (sysExc.Message);
 			}
 
-			// hopefully we have a cached version saved from
-			// a previous run -- otherwise return an empty list
+			// hopefully we have a cached version saved from a previous run 
+			// -- otherwise return an empty list
 			if (!File.Exists (filename)) {
 				return res;
 			}
@@ -76,11 +87,14 @@ namespace FeedReader
 				Console.WriteLine (sysExc.Message);
 			}
 			finally {
-				// close the reader so that we don't
-				// tie up the cached.xml file
+				// close the reader so that we don't tie up cached.xml
 				if (reader != null) {
 					reader.Close ();
 				}
+			}
+
+			lock (lockObject) {
+				running = false;
 			}
 			
 			return res;
